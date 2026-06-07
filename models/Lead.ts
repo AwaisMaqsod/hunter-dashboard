@@ -70,6 +70,6 @@ const LeadSchema = new Schema<ILead>({
 })
 
 const Lead: Model<ILead> =
-  mongoose.models.Lead ?? mongoose.model<ILead>("Lead", LeadSchema)
+  (mongoose.models?.["Lead"] as Model<ILead>) ?? mongoose.model<ILead>("Lead", LeadSchema)
 
 export default Lead
