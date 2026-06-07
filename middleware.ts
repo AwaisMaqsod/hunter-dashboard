@@ -6,19 +6,14 @@ const { auth } = NextAuth(authConfig)
 export default auth((req) => {
   const { pathname } = req.nextUrl
 
-  if (pathname.startsWith("/api/leads/sync")) {
-    return undefined
-  }
-
-  if (!req.auth && pathname !== "/login") {
+  if (!req.auth) {
     return Response.redirect(new URL("/login", req.url))
-  }
-
-  if (req.auth && pathname === "/login") {
-    return Response.redirect(new URL("/dashboard", req.url))
   }
 })
 
 export const config = {
-  matcher: ["/((?!api/auth|api/leads/sync|_next/static|_next/image|favicon.ico|public).*)"],
+  // /login is excluded here — middleware never runs on it, breaking any possible redirect loop
+  matcher: [
+    "/((?!login|api/auth|api/leads/sync|_next/static|_next/image|favicon\\.ico|public).*)",
+  ],
 }
