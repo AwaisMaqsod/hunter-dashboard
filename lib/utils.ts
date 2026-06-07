@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { LeadStatus } from "@/types"
+import { LeadStatus, BusinessInfo } from "@/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -31,13 +31,34 @@ export const STATUS_OPTIONS: { value: LeadStatus; label: string }[] = [
   { value: "lost", label: "Lost" },
 ]
 
+function buildSignature(biz: BusinessInfo): string {
+  const name = biz.ownerName || "[Your Name]"
+  const agency = biz.agencyName || ""
+  const website = biz.website || "[Your Website]"
+  const phone = biz.phone || "[Your Phone]"
+  const email = biz.email || ""
+
+  const line1 = agency ? `${name} — ${agency}` : name
+  const line2 = [website, phone, email].filter(Boolean).join(" | ")
+  return `${line1}\n${line2}`
+}
+
 export function getPitchTemplate(
   category: string,
-  businessName: string
+  businessName: string,
+  biz: BusinessInfo = {}
 ): { subject: string; body: string } {
   const cat = category.toLowerCase()
+  const sig = buildSignature(biz)
 
-  if (cat.includes("cafe") || cat.includes("restaurant") || cat.includes("food") || cat.includes("pizza") || cat.includes("bar")) {
+  if (
+    cat.includes("cafe") ||
+    cat.includes("restaurant") ||
+    cat.includes("food") ||
+    cat.includes("pizza") ||
+    cat.includes("bar") ||
+    cat.includes("takeaway")
+  ) {
     return {
       subject: `Help ${businessName} Get More Online Orders`,
       body: `Hi ${businessName} Team,
@@ -53,12 +74,17 @@ Here's what I can build for you:
 I'd love to show you what I've done for similar businesses nearby. Open for a quick 15-minute call this week?
 
 Best regards,
-[Your Name]
-[Your Website] | [Your Phone]`,
+${sig}`,
     }
   }
 
-  if (cat.includes("salon") || cat.includes("barber") || cat.includes("beauty") || cat.includes("hair") || cat.includes("nail")) {
+  if (
+    cat.includes("salon") ||
+    cat.includes("barber") ||
+    cat.includes("beauty") ||
+    cat.includes("hair") ||
+    cat.includes("nail")
+  ) {
     return {
       subject: `Fill Your Appointment Book at ${businessName}`,
       body: `Hi ${businessName} Team,
@@ -76,12 +102,17 @@ Many salons I work with see a 40% increase in bookings within 3 months.
 Can we schedule a quick 15-minute call?
 
 Best regards,
-[Your Name]
-[Your Website] | [Your Phone]`,
+${sig}`,
     }
   }
 
-  if (cat.includes("gym") || cat.includes("fitness") || cat.includes("yoga") || cat.includes("pilates") || cat.includes("sport")) {
+  if (
+    cat.includes("gym") ||
+    cat.includes("fitness") ||
+    cat.includes("yoga") ||
+    cat.includes("pilates") ||
+    cat.includes("sport")
+  ) {
     return {
       subject: `Grow ${businessName}'s Membership with a Professional Website`,
       body: `Hi ${businessName} Team,
@@ -99,12 +130,17 @@ Fitness studios I work with typically grow membership by 25–50%.
 Free for a 15-minute call this week?
 
 Best regards,
-[Your Name]
-[Your Website] | [Your Phone]`,
+${sig}`,
     }
   }
 
-  if (cat.includes("plumb") || cat.includes("electr") || cat.includes("hvac") || cat.includes("repair") || cat.includes("contrac")) {
+  if (
+    cat.includes("plumb") ||
+    cat.includes("electr") ||
+    cat.includes("hvac") ||
+    cat.includes("repair") ||
+    cat.includes("contrac")
+  ) {
     return {
       subject: `Get More Emergency Calls for ${businessName}`,
       body: `Hi ${businessName} Team,
@@ -122,8 +158,7 @@ Homeowners are searching for your services right now — let's make sure they fi
 15-minute call this week?
 
 Best regards,
-[Your Name]
-[Your Website] | [Your Phone]`,
+${sig}`,
     }
   }
 
@@ -144,7 +179,6 @@ I work exclusively with local businesses and offer affordable, fast turnaround.
 Would you be open to a free 15-minute consultation?
 
 Best regards,
-[Your Name]
-[Your Website] | [Your Phone]`,
+${sig}`,
   }
 }

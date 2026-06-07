@@ -1,5 +1,14 @@
 export type LeadStatus = "new" | "contacted" | "interested" | "closed" | "lost"
 
+export interface BusinessInfo {
+  ownerName?: string
+  agencyName?: string
+  email?: string
+  phone?: string
+  website?: string
+  tagline?: string
+}
+
 export interface ActivityEntry {
   action: string
   note: string
