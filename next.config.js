@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {},
+  serverExternalPackages: ["mongoose"],
+  webpack: (config) => {
+    config.resolve.fallback = { ...config.resolve.fallback, net: false, tls: false }
+    return config
+  },
 }
 
 module.exports = nextConfig
