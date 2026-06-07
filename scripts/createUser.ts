@@ -20,6 +20,7 @@ if (!MONGODB_URI) {
   console.error("Error: MONGODB_URI is not set. Add it to .env.local")
   process.exit(1)
 }
+const mongoUri = MONGODB_URI as string
 
 async function main() {
   const rl = readline.createInterface({ input, output })
@@ -45,7 +46,7 @@ async function main() {
   rl.close()
 
   console.log("\nConnecting to MongoDB...")
-  await mongoose.connect(MONGODB_URI)
+  await mongoose.connect(mongoUri)
 
   const UserSchema = new mongoose.Schema({
     email: { type: String, unique: true, required: true },
