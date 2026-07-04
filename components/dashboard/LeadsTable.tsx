@@ -186,9 +186,16 @@ export default function LeadsTable({
                         )}
                       </div>
                     ) : (
-                      <span className="inline-flex w-fit items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
-                        🗺️ Maps
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex w-fit items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                          🗺️ Maps
+                        </span>
+                        {(role === "admin" || lead.syncedBy !== currentUserId) && lead.syncedByName && (
+                          <span className="text-[11px] text-gray-400">
+                            by {lead.syncedBy === currentUserId ? "you" : lead.syncedByName}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </td>
 

@@ -206,6 +206,15 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, onDeleted }: 
                     {localLead.category}
                   </Badge>
                 )}
+                <p className="text-xs text-gray-400 mt-1">
+                  {localLead.source === "manual"
+                    ? `Added manually via ${localLead.platform ?? "Other"}${
+                        localLead.addedByName ? ` by ${localLead.addedByName}` : ""
+                      }`
+                    : localLead.syncedByName
+                      ? `Synced from Google Maps by ${localLead.syncedByName}`
+                      : "Synced from Google Maps"}
+                </p>
               </div>
               <div className="text-right shrink-0">
                 <div className="flex items-center gap-1 text-amber-500">

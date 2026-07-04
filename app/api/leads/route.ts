@@ -70,6 +70,7 @@ export async function GET(req: NextRequest) {
     const [leads, total] = await Promise.all([
       Lead.find(filter)
         .populate({ path: "addedBy", select: "name" })
+        .populate({ path: "syncedBy", select: "name" })
         .sort(sort)
         .skip(skip)
         .limit(limit)

@@ -8,19 +8,32 @@ export function getLeadVisibilityFilter(session: Session): Record<string, unknow
   }
 }
 
+type PopulatedRef = { _id: unknown; name?: string } | string | null
+
 interface LeanLeadWithPopulatedOwner {
-  addedBy: { _id: unknown; name?: string } | string | null
+  addedBy: PopulatedRef
+  syncedBy: PopulatedRef
   [key: string]: unknown
 }
 
-/** Flattens a populated `addedBy` (from `.populate({ path: "addedBy", select: "name" })`) into `addedBy`/`addedByName` strings for the client. */
+function flattenRef(ref: PopulatedRef): { id: PopulatedRef; name: string | null } {
+  if (ref && typeof ref === "object") {
+    return { id: String(ref._id), name: ref.name ?? null }
+  }
+  return { id: ref, name: null }
+}
+
+/** Flattens populated `addedBy`/`syncedBy` refs (from `.populate({ path: "...", select: "name" })`) into plain id + name strings for the client. */
 export function serializeLeadsWithOwner<T extends LeanLeadWithPopulatedOwner>(leads: T[]) {
   return leads.map((lead) => {
-    const addedByDoc = lead.addedBy as { _id: unknown; name?: string } | null
+    const addedBy = flattenRef(lead.addedBy)
+    const syncedBy = flattenRef(lead.syncedBy)
     return {
       ...lead,
-      addedBy: addedByDoc && typeof addedByDoc === "object" ? String(addedByDoc._id) : addedByDoc,
-      addedByName: addedByDoc && typeof addedByDoc === "object" ? addedByDoc.name ?? null : null,
+      addedBy: addedBy.id,
+      addedByName: addedBy.name,
+      syncedBy: syncedBy.id,
+      syncedByName: syncedBy.name,
     }
   })
 }
