@@ -11,6 +11,8 @@ import LeadsTable from "@/components/dashboard/LeadsTable"
 import { getLeadVisibilityFilter, serializeLeadsWithOwner } from "@/lib/leads"
 import { Lead as LeadType } from "@/types"
 
+export const dynamic = "force-dynamic"
+
 interface LeadsPageProps {
   searchParams: {
     page?: string

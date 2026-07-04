@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { format } from "date-fns"
 import {
@@ -53,10 +53,10 @@ export default function LeadsTable({
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [localLeads, setLocalLeads] = useState<Lead[]>(leads)
 
-  // Keep localLeads in sync when server-side props change
-  useState(() => {
+  // Keep localLeads in sync when server-side props change (new filters, pagination, etc.)
+  useEffect(() => {
     setLocalLeads(leads)
-  })
+  }, [leads])
 
   const allSelected = localLeads.length > 0 && selectedIds.length === localLeads.length
 
@@ -74,6 +74,7 @@ export default function LeadsTable({
     const params = new URLSearchParams(searchParams.toString())
     params.set("page", String(p))
     router.push(`${pathname}?${params.toString()}`)
+    router.refresh()
   }
 
   const handleStatusChange = async (leadId: string, status: LeadStatus) => {

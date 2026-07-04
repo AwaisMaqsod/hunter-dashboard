@@ -4,6 +4,31 @@ import Lead from "@/models/Lead"
 import User from "@/models/User"
 import { logActivity } from "@/lib/activity"
 
+const COMPARABLE_FIELDS = [
+  "businessName",
+  "category",
+  "address",
+  "phone",
+  "website",
+  "email",
+  "instagram",
+  "facebook",
+  "rating",
+  "reviewCount",
+  "hasWebsite",
+] as const
+
+/** Re-syncing the same unchanged listing shouldn't spam the activity log with no-op entries. */
+function hasLeadDataChanged(
+  existing: Record<string, unknown>,
+  incoming: Record<string, unknown>
+): boolean {
+  return COMPARABLE_FIELDS.some((field) => {
+    if (!(field in incoming)) return false
+    return (existing[field] ?? null) !== (incoming[field] ?? null)
+  })
+}
+
 /** Lets the Chrome extension confirm which dashboard account an API key belongs to. */
 export async function GET(req: NextRequest) {
   try {
@@ -54,9 +79,11 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        const existing = await Lead.findOne({ mapsUrl: leadData.mapsUrl })
+        const existing = await Lead.findOne({ mapsUrl: leadData.mapsUrl }).lean()
 
         if (existing) {
+          const changed = hasLeadDataChanged(existing, leadData)
+
           await Lead.updateOne(
             { mapsUrl: leadData.mapsUrl },
             {
@@ -65,18 +92,20 @@ export async function POST(req: NextRequest) {
                 syncedBy: user._id,
                 updatedAt: new Date(),
               },
-              $push: {
-                activityLog: {
-                  action: "synced_from_extension",
-                  note: "Re-synced from Chrome extension",
-                  actorId: user._id.toString(),
-                  actorName: user.name,
-                  timestamp: new Date(),
+              ...(changed && {
+                $push: {
+                  activityLog: {
+                    action: "synced_from_extension",
+                    note: "Re-synced from Chrome extension",
+                    actorId: user._id.toString(),
+                    actorName: user.name,
+                    timestamp: new Date(),
+                  },
                 },
-              },
+              }),
             }
           )
-          updated++
+          if (changed) updated++
         } else {
           await Lead.create({
             ...leadData,
