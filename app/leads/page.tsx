@@ -78,6 +78,7 @@ async function getLeadsData(searchParams: LeadsPageProps["searchParams"], sessio
   const [leads, total, categoriesRaw, lastSynced] = await Promise.all([
     Lead.find(filter)
       .populate({ path: "addedBy", select: "name" })
+      .populate({ path: "syncedBy", select: "name" })
       .sort(sort)
       .skip(skip)
       .limit(limit)

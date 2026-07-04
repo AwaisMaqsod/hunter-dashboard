@@ -33,6 +33,7 @@ export interface ILead extends Document {
   source: LeadSource
   platform: string | null
   addedBy: mongoose.Types.ObjectId | null
+  syncedBy: mongoose.Types.ObjectId | null
   activityLog: IActivityEntry[]
   createdAt: Date
   updatedAt: Date
@@ -76,6 +77,7 @@ const LeadSchema = new Schema<ILead>({
   source: { type: String, enum: ["google_maps", "manual"], default: "google_maps" },
   platform: { type: String, default: null },
   addedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+  syncedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
   activityLog: [ActivityEntrySchema],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

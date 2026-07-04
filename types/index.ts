@@ -44,6 +44,8 @@ export interface Lead {
   platform: string | null
   addedBy: string | null
   addedByName: string | null
+  syncedBy: string | null
+  syncedByName: string | null
   activityLog: ActivityEntry[]
   createdAt: string
   updatedAt: string

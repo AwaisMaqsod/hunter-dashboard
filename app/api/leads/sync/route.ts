@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
             {
               $set: {
                 ...leadData,
+                syncedBy: user._id,
                 updatedAt: new Date(),
               },
               $push: {
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
             ...leadData,
             source: "google_maps",
             addedBy: null,
+            syncedBy: user._id,
             syncedFromExtension: true,
             activityLog: [
               {
