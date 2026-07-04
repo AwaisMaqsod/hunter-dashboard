@@ -3,25 +3,30 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { MapPin, LayoutDashboard, BarChart2, Settings, LogOut, Menu, X } from "lucide-react"
+import { MapPin, LayoutDashboard, ListChecks, BarChart2, Users, Settings, LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/leads", label: "Leads", icon: ListChecks },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
+  { href: "/team", label: "Team", icon: Users, adminOnly: true },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 interface SidebarProps {
   userName: string
   userEmail: string
+  role?: "admin" | "team"
 }
 
-export default function Sidebar({ userName, userEmail }: SidebarProps) {
+export default function Sidebar({ userName, userEmail, role }: SidebarProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const visibleNavItems = navItems.filter((item) => !item.adminOnly || role === "admin")
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
@@ -31,7 +36,7 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => (
+        {visibleNavItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}

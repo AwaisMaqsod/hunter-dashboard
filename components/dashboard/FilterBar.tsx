@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import AddLeadDialog from "@/components/leads/AddLeadDialog"
 
 interface FilterBarProps {
   categories: string[]
@@ -55,12 +56,14 @@ export default function FilterBar({ categories }: FilterBarProps) {
     searchParams.get("status") ||
     searchParams.get("hasWebsite") ||
     searchParams.get("category") ||
+    searchParams.get("source") ||
     searchParams.get("dateFrom") ||
     searchParams.get("dateTo")
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-1 flex-wrap gap-3 min-w-0">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -123,6 +126,21 @@ export default function FilterBar({ categories }: FilterBarProps) {
           </SelectContent>
         </Select>
 
+        {/* Source filter */}
+        <Select
+          value={searchParams.get("source") ?? "all"}
+          onValueChange={(v) => updateParam("source", v === "all" ? null : v)}
+        >
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All Sources" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="google_maps">Google Maps</SelectItem>
+            <SelectItem value="manual">Manually Added</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Date from */}
         <Input
           type="date"
@@ -146,6 +164,9 @@ export default function FilterBar({ categories }: FilterBarProps) {
             Clear
           </Button>
         )}
+        </div>
+
+        <AddLeadDialog />
       </div>
     </div>
   )

@@ -86,6 +86,7 @@ export default async function AnalyticsPage() {
       <Sidebar
         userName={session.user.name ?? "User"}
         userEmail={session.user.email ?? ""}
+        role={session.user.role}
       />
 
       <main className="flex-1 lg:ml-64 p-6">

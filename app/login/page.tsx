@@ -108,10 +108,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          No account? Run <code className="bg-gray-100 px-1 rounded">npm run create-user</code> to create one.
-        </p>
       </div>
     </div>
   )

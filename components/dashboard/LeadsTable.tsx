@@ -32,9 +32,18 @@ interface LeadsTableProps {
   total: number
   page: number
   totalPages: number
+  currentUserId?: string
+  role?: "admin" | "team"
 }
 
-export default function LeadsTable({ leads, total, page, totalPages }: LeadsTableProps) {
+export default function LeadsTable({
+  leads,
+  total,
+  page,
+  totalPages,
+  currentUserId,
+  role,
+}: LeadsTableProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -117,6 +126,7 @@ export default function LeadsTable({ leads, total, page, totalPages }: LeadsTabl
                 </th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Business</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Location</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Source</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Contact</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Website</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
@@ -156,6 +166,25 @@ export default function LeadsTable({ leads, total, page, totalPages }: LeadsTabl
 
                   <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
                     {extractCity(lead.address)}
+                  </td>
+
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    {lead.source === "manual" ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex w-fit items-center gap-1 text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                          {lead.platform ?? "Manual"}
+                        </span>
+                        {(role === "admin" || lead.addedBy !== currentUserId) && lead.addedByName && (
+                          <span className="text-[11px] text-gray-400">
+                            by {lead.addedBy === currentUserId ? "you" : lead.addedByName}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="inline-flex w-fit items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                        🗺️ Maps
+                      </span>
+                    )}
                   </td>
 
                   <td className="px-4 py-3 hidden lg:table-cell">
@@ -250,7 +279,7 @@ export default function LeadsTable({ leads, total, page, totalPages }: LeadsTabl
 
               {localLeads.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-gray-400">
+                  <td colSpan={9} className="py-16 text-center text-gray-400">
                     No leads found. Adjust your filters or sync from the extension.
                   </td>
                 </tr>

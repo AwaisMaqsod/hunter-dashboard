@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "create-user": "tsx scripts/createUser.ts"
+    "create-user": "tsx scripts/createUser.ts",
+    "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
