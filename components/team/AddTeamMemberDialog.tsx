@@ -62,7 +62,7 @@ export default function AddTeamMemberDialog() {
         <UserPlus className="h-4 w-4" />
         Add Team Member
       </Button>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add team member</DialogTitle>
         </DialogHeader>

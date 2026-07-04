@@ -17,6 +17,9 @@ import {
   Clock,
   RefreshCw,
   MessageSquare,
+  PhoneCall,
+  Trash2,
+  Loader2,
 } from "lucide-react"
 import {
   Sheet,
@@ -38,22 +41,33 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { Lead, LeadStatus } from "@/types"
-import { getStatusColor, STATUS_OPTIONS } from "@/lib/utils"
+import { getStatusColor, STATUS_OPTIONS, cn } from "@/lib/utils"
 import PitchModal from "./PitchModal"
+
+const PIPELINE_STEPS: { value: LeadStatus; label: string }[] = [
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "interested", label: "Interested" },
+  { value: "closed", label: "Closed" },
+]
 
 interface LeadDetailPanelProps {
   lead: Lead | null
   onClose: () => void
   onUpdate: (updated: Lead) => void
+  onDeleted?: (id: string) => void
 }
 
-export default function LeadDetailPanel({ lead, onClose, onUpdate }: LeadDetailPanelProps) {
+export default function LeadDetailPanel({ lead, onClose, onUpdate, onDeleted }: LeadDetailPanelProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [localLead, setLocalLead] = useState<Lead | null>(null)
   const [notes, setNotes] = useState("")
   const [noteSaved, setNoteSaved] = useState(false)
   const [pitchOpen, setPitchOpen] = useState(false)
+  const [followUpNote, setFollowUpNote] = useState("")
+  const [loggingFollowUp, setLoggingFollowUp] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const notesTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -109,14 +123,74 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate }: LeadDetailP
     }
   }
 
+  const handleLogFollowUp = async () => {
+    if (!localLead) return
+    setLoggingFollowUp(true)
+    try {
+      const res = await fetch(`/api/leads/${localLead._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logFollowUp: followUpNote || "Follow-up logged" }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setLocalLead(data.lead)
+      onUpdate(data.lead)
+      setFollowUpNote("")
+      toast({ title: "Follow-up logged" })
+      router.refresh()
+    } catch {
+      toast({ title: "Failed to log follow-up", variant: "destructive" })
+    } finally {
+      setLoggingFollowUp(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!localLead) return
+    if (!confirm(`Delete "${localLead.businessName}"? This cannot be undone.`)) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/leads/${localLead._id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast({ title: `"${localLead.businessName}" deleted` })
+      onDeleted?.(localLead._id)
+      onClose()
+      router.refresh()
+    } catch {
+      toast({ title: "Failed to delete lead", variant: "destructive" })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const activityIcon = (action: string) => {
     if (action === "synced_from_extension") return "📥"
     if (action === "status_changed") return "🔄"
     if (action === "pitch_sent") return "📧"
+    if (action === "follow_up_logged") return "📞"
+    if (action === "lead_added_manual") return "➕"
     return "📝"
   }
 
   if (!localLead) return null
+
+  const followUpCount = localLead.activityLog.filter(
+    (e) => e.action === "pitch_sent" || e.action === "follow_up_logged"
+  ).length
+
+  const daysInPipeline = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(localLead.createdAt).getTime()) / 86400000)
+  )
+
+  const sortedLog = [...localLead.activityLog].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  )
+  const lastActivityAt = sortedLog[0]?.timestamp ?? null
+
+  const isLost = localLead.status === "lost"
+  const currentStepIndex = PIPELINE_STEPS.findIndex((s) => s.value === localLead.status)
 
   return (
     <>
@@ -194,6 +268,59 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate }: LeadDetailP
             </div>
           </div>
 
+          {/* Progress overview */}
+          <div className="px-6 py-4 border-b bg-gray-50/60">
+            <div className="grid grid-cols-3 gap-3 text-center mb-4">
+              <div>
+                <p className="text-lg font-bold text-gray-900">{daysInPipeline}</p>
+                <p className="text-[11px] text-gray-500">Days in pipeline</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-gray-900">{followUpCount}</p>
+                <p className="text-[11px] text-gray-500">Follow-ups sent</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-gray-900">
+                  {lastActivityAt ? formatDistanceToNow(new Date(lastActivityAt)) : "—"}
+                </p>
+                <p className="text-[11px] text-gray-500">Since last activity</p>
+              </div>
+            </div>
+
+            {isLost ? (
+              <div className="text-center text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg py-1.5">
+                Lost
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1">
+                  {PIPELINE_STEPS.map((step, i) => (
+                    <div
+                      key={step.value}
+                      className={cn(
+                        "flex-1 h-1.5 rounded-full",
+                        currentStepIndex >= i ? "bg-blue-500" : "bg-gray-200"
+                      )}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between mt-1">
+                  {PIPELINE_STEPS.map((step, i) => (
+                    <span
+                      key={step.value}
+                      className={cn(
+                        "text-[10px]",
+                        currentStepIndex >= i ? "text-blue-600 font-medium" : "text-gray-400"
+                      )}
+                    >
+                      {step.label}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
           <div className="px-6 py-4 space-y-5">
             {/* Info grid */}
             <div className="grid grid-cols-1 gap-3">
@@ -254,6 +381,33 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate }: LeadDetailP
                     saveField("followUpDate", e.target.value || null)
                   }
                 />
+              </div>
+            </div>
+
+            {/* Log a follow-up */}
+            <div className="border-t pt-4">
+              <Label className="text-xs text-gray-500 mb-1.5 block">Log a Follow-up</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={followUpNote}
+                  onChange={(e) => setFollowUpNote(e.target.value)}
+                  placeholder="e.g. Called, left voicemail"
+                  className="flex-1"
+                  disabled={loggingFollowUp}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleLogFollowUp}
+                  disabled={loggingFollowUp}
+                  title="Log follow-up"
+                >
+                  {loggingFollowUp ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PhoneCall className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </div>
 
@@ -321,6 +475,24 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate }: LeadDetailP
                 </div>
               </div>
             )}
+
+            {/* Danger zone */}
+            <div className="border-t pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                Delete Lead
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
