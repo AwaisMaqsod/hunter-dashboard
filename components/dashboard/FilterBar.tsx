@@ -73,12 +73,12 @@ export default function FilterBar({ categories }: FilterBarProps) {
     searchParams.get("dateTo")
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-1 flex-wrap gap-3 min-w-0">
+    <div className="bg-white rounded-xl border border-gray-200 p-3 mb-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-1 flex-wrap gap-2 min-w-0">
           {/* Search */}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
             <Input
               placeholder="Search business name, address..."
               className="pl-9"
@@ -90,7 +90,7 @@ export default function FilterBar({ categories }: FilterBarProps) {
 
           {/* Status filter */}
           <Select value={draft.status} onValueChange={(v) => updateDraft("status", v)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -105,7 +105,7 @@ export default function FilterBar({ categories }: FilterBarProps) {
 
           {/* Website filter */}
           <Select value={draft.hasWebsite} onValueChange={(v) => updateDraft("hasWebsite", v)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Website Filter" />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +117,7 @@ export default function FilterBar({ categories }: FilterBarProps) {
 
           {/* Category filter */}
           <Select value={draft.category} onValueChange={(v) => updateDraft("category", v)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -132,7 +132,7 @@ export default function FilterBar({ categories }: FilterBarProps) {
 
           {/* Source filter */}
           <Select value={draft.source} onValueChange={(v) => updateDraft("source", v)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Sources" />
             </SelectTrigger>
             <SelectContent>
@@ -145,7 +145,7 @@ export default function FilterBar({ categories }: FilterBarProps) {
           {/* Date from */}
           <Input
             type="date"
-            className="w-[150px]"
+            className="w-[135px]"
             value={draft.dateFrom}
             onChange={(e) => updateDraft("dateFrom", e.target.value)}
           />
@@ -153,21 +153,21 @@ export default function FilterBar({ categories }: FilterBarProps) {
           {/* Date to */}
           <Input
             type="date"
-            className="w-[150px]"
+            className="w-[135px]"
             value={draft.dateTo}
             onChange={(e) => updateDraft("dateTo", e.target.value)}
           />
 
           {/* Search button */}
-          <Button onClick={runSearch} size="sm" className="gap-1.5 h-10 px-4">
-            <Search className="h-4 w-4" />
+          <Button onClick={runSearch} size="sm" className="gap-1.5">
+            <Search className="h-3.5 w-3.5" />
             Search
           </Button>
 
           {/* Clear */}
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-gray-500 h-10">
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-gray-500">
+              <X className="h-3.5 w-3.5" />
               Clear
             </Button>
           )}

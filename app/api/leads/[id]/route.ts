@@ -6,12 +6,12 @@ import { getLeadVisibilityFilter } from "@/lib/leads"
 import { logActivity } from "@/lib/activity"
 
 function canAccessLead(
-  lead: { source: string; addedBy: unknown },
+  lead: { addedBy: unknown; syncedBy: unknown },
   role: "admin" | "team",
   userId: string
 ) {
   if (role === "admin") return true
-  return lead.source === "google_maps" || lead.addedBy?.toString() === userId
+  return lead.addedBy?.toString() === userId || lead.syncedBy?.toString() === userId
 }
 
 export async function PATCH(

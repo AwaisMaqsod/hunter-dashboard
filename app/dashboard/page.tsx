@@ -66,7 +66,7 @@ export default async function DashboardPage() {
         role={session.user.role}
       />
 
-      <main className="flex-1 min-w-0 lg:ml-64 p-6">
+      <main className="flex-1 min-w-0 lg:ml-56 p-5">
         <TopBar title="Dashboard" lastSyncedAt={lastSyncedAt} />
         <StatsCards stats={stats} />
 
