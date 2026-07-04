@@ -1,10 +1,10 @@
 import { Session } from "next-auth"
 
-/** Team members see Google-Maps-scraped leads (shared pool) plus only the leads they manually added. Admins see everything. */
+/** Team members only see leads they personally added manually or synced from the extension. Admins see everything. */
 export function getLeadVisibilityFilter(session: Session): Record<string, unknown> {
   if (session.user.role === "admin") return {}
   return {
-    $or: [{ source: "google_maps" }, { addedBy: session.user.userId }],
+    $or: [{ addedBy: session.user.userId }, { syncedBy: session.user.userId }],
   }
 }
 

@@ -123,21 +123,21 @@ export default function LeadsTable({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="w-10 px-4 py-3">
+                <th className="w-9 px-3 py-2">
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={toggleAll}
                     aria-label="Select all"
                   />
                 </th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Business</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Location</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Source</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Contact</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Website</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden xl:table-cell">Follow-up</th>
-                <th className="w-10 px-4 py-3" />
+                <th className="text-left px-3 py-2 font-medium text-gray-600">Business</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-600 hidden md:table-cell">Location</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-600 hidden md:table-cell">Source</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-600 hidden lg:table-cell">Contact</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-600 hidden lg:table-cell">Website</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-600">Status</th>
+                <th className="text-left px-3 py-2 font-medium text-gray-600 hidden xl:table-cell">Follow-up</th>
+                <th className="w-9 px-3 py-2" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -148,7 +148,7 @@ export default function LeadsTable({
                     !lead.hasWebsite ? "border-l-2 border-l-orange-400" : ""
                   }`}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <Checkbox
                       checked={selectedIds.includes(lead._id)}
                       onCheckedChange={() => toggleRow(lead._id)}
@@ -156,7 +156,7 @@ export default function LeadsTable({
                     />
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <button
                       className="text-left"
                       onClick={() => setSelectedLead(lead)}
@@ -170,11 +170,11 @@ export default function LeadsTable({
                     </button>
                   </td>
 
-                  <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                  <td className="px-3 py-2 text-gray-600 hidden md:table-cell">
                     {extractCity(lead.address)}
                   </td>
 
-                  <td className="px-4 py-3 hidden md:table-cell">
+                  <td className="px-3 py-2 hidden md:table-cell">
                     {lead.source === "manual" ? (
                       <div className="flex flex-col gap-0.5">
                         <span className="inline-flex w-fit items-center gap-1 text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
@@ -200,7 +200,7 @@ export default function LeadsTable({
                     )}
                   </td>
 
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  <td className="px-3 py-2 hidden lg:table-cell">
                     <div className="flex flex-col gap-0.5">
                       {lead.phone && (
                         <a
@@ -228,7 +228,7 @@ export default function LeadsTable({
                     </div>
                   </td>
 
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  <td className="px-3 py-2 hidden lg:table-cell">
                     {lead.hasWebsite ? (
                       <a
                         href={lead.website ?? "#"}
@@ -247,7 +247,7 @@ export default function LeadsTable({
                     )}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
@@ -271,20 +271,20 @@ export default function LeadsTable({
                     </DropdownMenu>
                   </td>
 
-                  <td className="px-4 py-3 text-gray-500 text-xs hidden xl:table-cell">
+                  <td className="px-3 py-2 text-gray-500 text-xs hidden xl:table-cell">
                     {lead.followUpDate
                       ? format(new Date(lead.followUpDate), "MMM d, yyyy")
                       : "—"}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       onClick={() => setSelectedLead(lead)}
                     >
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-3.5 w-3.5 text-gray-400" />
                     </Button>
                   </td>
                 </tr>
@@ -303,7 +303,7 @@ export default function LeadsTable({
 
         {/* Pagination */}
         {total > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between px-3 py-2 border-t border-gray-200 bg-gray-50">
             <p className="text-sm text-gray-500">
               Showing {start}–{end} of {total.toLocaleString()} leads
             </p>
@@ -327,7 +327,7 @@ export default function LeadsTable({
                       key={p}
                       variant={p === page ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 p-0"
                       onClick={() => goToPage(p)}
                     >
                       {p}

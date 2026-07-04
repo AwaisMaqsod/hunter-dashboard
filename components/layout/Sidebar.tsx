@@ -30,19 +30,19 @@ export default function Sidebar({ userName, userEmail, role }: SidebarProps) {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-6 py-5 border-b border-slate-700">
-        <MapPin className="h-6 w-6 text-orange-400" />
-        <span className="text-white font-bold text-lg">Lead Hunter</span>
+      <div className="flex items-center gap-2 px-4 py-4 border-b border-slate-700">
+        <MapPin className="h-5 w-5 text-orange-400" />
+        <span className="text-white font-bold text-base">Lead Hunter</span>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-2.5 py-3 space-y-1">
         {visibleNavItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               pathname === href
                 ? "bg-slate-700 text-white"
                 : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
@@ -93,7 +93,7 @@ export default function Sidebar({ userName, userEmail, role }: SidebarProps) {
       {/* Mobile sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-slate-800 transform transition-transform duration-300 lg:hidden",
+          "fixed inset-y-0 left-0 z-40 w-56 bg-slate-800 transform transition-transform duration-300 lg:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -101,7 +101,7 @@ export default function Sidebar({ userName, userEmail, role }: SidebarProps) {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col bg-slate-800">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-56 lg:flex-col bg-slate-800">
         <SidebarContent />
       </aside>
     </>
