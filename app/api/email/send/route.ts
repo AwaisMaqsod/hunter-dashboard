@@ -4,6 +4,7 @@ import { sendPitchEmail, isGmailConfigured } from "@/lib/email"
 import connectDB from "@/lib/mongodb"
 import Lead from "@/models/Lead"
 import User from "@/models/User"
+import { logActivity } from "@/lib/activity"
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,15 +42,29 @@ export async function POST(req: NextRequest) {
     // Update lead: mark pitch sent + activity log
     if (leadId) {
       const pitchText = `Subject: ${subject}\n\n${body}`
-      await Lead.findByIdAndUpdate(leadId, {
+      const lead = await Lead.findByIdAndUpdate(leadId, {
         $set: { pitchSent: pitchText, updatedAt: new Date() },
         $push: {
           activityLog: {
             action: "pitch_sent",
             note: `Email sent to ${to}`,
+            actorId: session.user.userId,
+            actorName: session.user.name ?? "Unknown",
             timestamp: new Date(),
           },
         },
+      })
+
+      await logActivity({
+        userId: session.user.userId,
+        userName: session.user.name ?? "Unknown",
+        userRole: session.user.role,
+        action: "pitch_sent",
+        targetType: "Lead",
+        targetId: leadId,
+        description: `${session.user.name} sent a pitch email to ${to}${
+          lead ? ` for "${lead.businessName}"` : ""
+        }`,
       })
     }
 

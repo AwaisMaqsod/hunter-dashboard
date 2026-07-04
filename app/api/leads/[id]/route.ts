@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import connectDB from "@/lib/mongodb"
 import Lead from "@/models/Lead"
+import { getLeadVisibilityFilter } from "@/lib/leads"
+import { logActivity } from "@/lib/activity"
+
+function canAccessLead(
+  lead: { source: string; addedBy: unknown },
+  role: "admin" | "team",
+  userId: string
+) {
+  if (role === "admin") return true
+  return lead.source === "google_maps" || lead.addedBy?.toString() === userId
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -24,12 +35,24 @@ export async function PATCH(
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
-    const activityEntries: { action: string; note: string; timestamp: Date }[] = []
+    if (!canAccessLead(lead, session.user.role, session.user.userId)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const actor = { actorId: session.user.userId, actorName: session.user.name ?? "Unknown" }
+    const activityEntries: {
+      action: string
+      note: string
+      actorId: string
+      actorName: string
+      timestamp: Date
+    }[] = []
 
     if (status && status !== lead.status) {
       activityEntries.push({
         action: "status_changed",
         note: `Status changed: ${lead.status} → ${status}`,
+        ...actor,
         timestamp: new Date(),
       })
       lead.status = status
@@ -39,6 +62,7 @@ export async function PATCH(
       activityEntries.push({
         action: "pitch_sent",
         note: "Pitch email sent",
+        ...actor,
         timestamp: new Date(),
       })
       lead.pitchSent = pitchSent
@@ -55,6 +79,20 @@ export async function PATCH(
 
     lead.updatedAt = new Date()
     await lead.save()
+
+    for (const entry of activityEntries) {
+      await logActivity({
+        userId: session.user.userId,
+        userName: session.user.name ?? "Unknown",
+        userRole: session.user.role,
+        action: entry.action as "status_changed" | "pitch_sent",
+        targetType: "Lead",
+        targetId: lead._id.toString(),
+        description: `${session.user.name} ${
+          entry.action === "status_changed" ? entry.note.toLowerCase() : "sent a pitch email"
+        } for "${lead.businessName}"`,
+      })
+    }
 
     return NextResponse.json({ lead })
   } catch (err) {
@@ -80,9 +118,23 @@ export async function DELETE(
       return NextResponse.json({ error: "Lead not found" }, { status: 404 })
     }
 
+    if (!canAccessLead(lead, session.user.role, session.user.userId)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     lead.isDeleted = true
     lead.updatedAt = new Date()
     await lead.save()
+
+    await logActivity({
+      userId: session.user.userId,
+      userName: session.user.name ?? "Unknown",
+      userRole: session.user.role,
+      action: "lead_deleted",
+      targetType: "Lead",
+      targetId: lead._id.toString(),
+      description: `${session.user.name} deleted "${lead.businessName}"`,
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {

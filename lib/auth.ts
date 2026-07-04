@@ -23,9 +23,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: string
           password: string
           apiKey: string
+          role: "admin" | "team"
+          isActive: boolean
         }>()
 
-        if (!user) return null
+        if (!user || user.isActive === false) return null
 
         const isValid = await bcrypt.compare(
           credentials.password as string,
@@ -38,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           apiKey: user.apiKey,
+          role: user.role ?? "admin",
         }
       },
     }),

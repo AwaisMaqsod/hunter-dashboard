@@ -1,4 +1,5 @@
-import { Suspense } from "react"
+import Link from "next/link"
+import { Session } from "next-auth"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectDB from "@/lib/mongodb"
@@ -6,67 +7,21 @@ import Lead from "@/models/Lead"
 import Sidebar from "@/components/layout/Sidebar"
 import TopBar from "@/components/layout/TopBar"
 import StatsCards from "@/components/dashboard/StatsCards"
-import FilterBar from "@/components/dashboard/FilterBar"
-import LeadsTable from "@/components/dashboard/LeadsTable"
-import { Lead as LeadType, StatsData } from "@/types"
+import ActivityFeed from "@/components/dashboard/ActivityFeed"
+import { Button } from "@/components/ui/button"
+import { getLeadVisibilityFilter } from "@/lib/leads"
+import { StatsData } from "@/types"
+import { ListChecks, BarChart2 } from "lucide-react"
 
-interface DashboardPageProps {
-  searchParams: {
-    page?: string
-    status?: string
-    hasWebsite?: string
-    category?: string
-    search?: string
-    dateFrom?: string
-    dateTo?: string
-    sortBy?: string
-    sortOrder?: string
-  }
-}
-
-async function getDashboardData(searchParams: DashboardPageProps["searchParams"]) {
+async function getOverviewData(session: Session) {
   await connectDB()
 
-  const page = Math.max(1, parseInt(searchParams.page ?? "1"))
-  const limit = 25
-  const skip = (page - 1) * limit
+  const visibility = getLeadVisibilityFilter(session)
+  const baseMatch: Record<string, unknown> = { isDeleted: false, ...visibility }
 
-  const filter: Record<string, unknown> = { isDeleted: false }
-
-  if (searchParams.status && searchParams.status !== "all") {
-    filter.status = searchParams.status
-  }
-  if (searchParams.hasWebsite === "true") filter.hasWebsite = true
-  if (searchParams.hasWebsite === "false") filter.hasWebsite = false
-  if (searchParams.category && searchParams.category !== "all") {
-    filter.category = searchParams.category
-  }
-  if (searchParams.search) {
-    filter.$or = [
-      { businessName: { $regex: searchParams.search, $options: "i" } },
-      { address: { $regex: searchParams.search, $options: "i" } },
-    ]
-  }
-  if (searchParams.dateFrom || searchParams.dateTo) {
-    const dateFilter: Record<string, Date> = {}
-    if (searchParams.dateFrom) dateFilter.$gte = new Date(searchParams.dateFrom)
-    if (searchParams.dateTo) {
-      const end = new Date(searchParams.dateTo)
-      end.setHours(23, 59, 59, 999)
-      dateFilter.$lte = end
-    }
-    filter.createdAt = dateFilter
-  }
-
-  const sortField = searchParams.sortBy ?? "createdAt"
-  const sortOrder = searchParams.sortOrder === "asc" ? 1 : -1
-  const sort: Record<string, 1 | -1> = { [sortField]: sortOrder }
-
-  const [leads, total, statsRaw, categoriesRaw, lastSynced] = await Promise.all([
-    Lead.find(filter).sort(sort).skip(skip).limit(limit).lean(),
-    Lead.countDocuments(filter),
+  const [statsRaw, lastSynced] = await Promise.all([
     Lead.aggregate([
-      { $match: { isDeleted: false } },
+      { $match: baseMatch },
       {
         $group: {
           _id: null,
@@ -77,8 +32,10 @@ async function getDashboardData(searchParams: DashboardPageProps["searchParams"]
         },
       },
     ]),
-    Lead.distinct("category", { isDeleted: false, category: { $ne: "" } }),
-    Lead.findOne({ isDeleted: false }).sort({ updatedAt: -1 }).select("updatedAt").lean(),
+    Lead.findOne({ isDeleted: false, ...visibility })
+      .sort({ updatedAt: -1 })
+      .select("updatedAt")
+      .lean(),
   ])
 
   const stats: StatsData = statsRaw[0]
@@ -91,47 +48,49 @@ async function getDashboardData(searchParams: DashboardPageProps["searchParams"]
       }
     : { totalLeads: 0, hotLeads: 0, contacted: 0, closed: 0, lastSyncedAt: null }
 
-  return {
-    leads: JSON.parse(JSON.stringify(leads)) as LeadType[],
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    stats,
-    categories: categoriesRaw as string[],
-    lastSyncedAt: lastSynced?.updatedAt?.toISOString() ?? null,
-  }
+  return { stats, lastSyncedAt: lastSynced?.updatedAt?.toISOString() ?? null }
 }
 
-export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+export default async function DashboardPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const { leads, total, page, totalPages, stats, categories, lastSyncedAt } =
-    await getDashboardData(searchParams)
+  const { stats, lastSyncedAt } = await getOverviewData(session)
+  const isAdmin = session.user.role === "admin"
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar
         userName={session.user.name ?? "User"}
         userEmail={session.user.email ?? ""}
+        role={session.user.role}
       />
 
       <main className="flex-1 lg:ml-64 p-6">
         <TopBar title="Dashboard" lastSyncedAt={lastSyncedAt} />
         <StatsCards stats={stats} />
 
-        <Suspense>
-          <FilterBar categories={categories} />
-        </Suspense>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <ActivityFeed isAdmin={isAdmin} />
+          </div>
 
-        <Suspense>
-          <LeadsTable
-            leads={leads}
-            total={total}
-            page={page}
-            totalPages={totalPages}
-          />
-        </Suspense>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <h2 className="text-base font-semibold text-gray-900 mb-1">Quick Links</h2>
+            <Link href="/leads">
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <ListChecks className="h-4 w-4" />
+                Manage Leads
+              </Button>
+            </Link>
+            <Link href="/analytics">
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <BarChart2 className="h-4 w-4" />
+                View Analytics
+              </Button>
+            </Link>
+          </div>
+        </div>
       </main>
     </div>
   )

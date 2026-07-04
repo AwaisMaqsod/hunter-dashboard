@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid"
 import * as dotenv from "dotenv"
 import * as path from "path"
 import * as fs from "fs"
+import User from "../models/User"
 
 // Load .env.local
 const envPath = path.resolve(process.cwd(), ".env.local")
@@ -48,16 +49,6 @@ async function main() {
   console.log("\nConnecting to MongoDB...")
   await mongoose.connect(mongoUri)
 
-  const UserSchema = new mongoose.Schema({
-    email: { type: String, unique: true, required: true },
-    password: { type: String, required: true },
-    name: { type: String, required: true },
-    apiKey: { type: String, unique: true },
-    createdAt: { type: Date, default: Date.now },
-  })
-
-  const User = mongoose.models.User ?? mongoose.model("User", UserSchema)
-
   const existing = await User.findOne({ email })
   if (existing) {
     console.error(`\nError: A user with email "${email}" already exists.`)
@@ -73,6 +64,7 @@ async function main() {
     email,
     password: hashedPassword,
     apiKey,
+    role: "admin",
   })
 
   console.log(`\n✅ User created successfully!`)

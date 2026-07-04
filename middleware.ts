@@ -9,6 +9,14 @@ export default auth((req) => {
   if (!req.auth) {
     return Response.redirect(new URL("/login", req.url))
   }
+
+  if (pathname.startsWith("/team") && req.auth.user?.role !== "admin") {
+    return Response.redirect(new URL("/dashboard", req.url))
+  }
+
+  if (pathname.startsWith("/api/users") && req.auth.user?.role !== "admin") {
+    return Response.json({ error: "Forbidden" }, { status: 403 })
+  }
 })
 
 export const config = {

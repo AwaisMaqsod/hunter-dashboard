@@ -9,11 +9,15 @@ export interface IBusinessInfo {
   tagline: string
 }
 
+export type UserRole = "admin" | "team"
+
 export interface IUser extends Document {
   email: string
   password: string
   name: string
   apiKey: string
+  role: UserRole
+  isActive: boolean
   businessInfo: IBusinessInfo
   createdAt: Date
 }
@@ -35,6 +39,8 @@ const UserSchema = new Schema<IUser>({
   password: { type: String, required: true },
   name: { type: String, required: true },
   apiKey: { type: String, unique: true, sparse: true },
+  role: { type: String, enum: ["admin", "team"], default: "admin" },
+  isActive: { type: Boolean, default: true },
   businessInfo: { type: BusinessInfoSchema, default: () => ({}) },
   createdAt: { type: Date, default: Date.now },
 })

@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb"
 import Lead from "@/models/Lead"
 import User from "@/models/User"
+import { logActivity } from "@/lib/activity"
+
+/** Lets the Chrome extension confirm which dashboard account an API key belongs to. */
+export async function GET(req: NextRequest) {
+  try {
+    const apiKey = req.headers.get("x-api-key")
+    if (!apiKey) {
+      return NextResponse.json({ error: "Missing x-api-key header" }, { status: 401 })
+    }
+
+    await connectDB()
+
+    const user = await User.findOne({ apiKey }).select("name email role isActive").lean()
+    if (!user || user.isActive === false) {
+      return NextResponse.json({ error: "Invalid API key" }, { status: 401 })
+    }
+
+    return NextResponse.json({ name: user.name, email: user.email, role: user.role ?? "admin" })
+  } catch (err) {
+    console.error("Sync whoami error:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +36,7 @@ export async function POST(req: NextRequest) {
     await connectDB()
 
     const user = await User.findOne({ apiKey })
-    if (!user) {
+    if (!user || user.isActive === false) {
       return NextResponse.json({ error: "Invalid API key" }, { status: 401 })
     }
 
@@ -45,6 +68,8 @@ export async function POST(req: NextRequest) {
                 activityLog: {
                   action: "synced_from_extension",
                   note: "Re-synced from Chrome extension",
+                  actorId: user._id.toString(),
+                  actorName: user.name,
                   timestamp: new Date(),
                 },
               },
@@ -54,11 +79,15 @@ export async function POST(req: NextRequest) {
         } else {
           await Lead.create({
             ...leadData,
+            source: "google_maps",
+            addedBy: null,
             syncedFromExtension: true,
             activityLog: [
               {
                 action: "synced_from_extension",
                 note: "Synced from Chrome extension",
+                actorId: user._id.toString(),
+                actorName: user.name,
                 timestamp: new Date(),
               },
             ],
@@ -70,6 +99,18 @@ export async function POST(req: NextRequest) {
       } catch {
         errors++
       }
+    }
+
+    if (inserted + updated > 0) {
+      await logActivity({
+        userId: user._id.toString(),
+        userName: user.name,
+        userRole: user.role ?? "admin",
+        action: "lead_synced",
+        targetType: "Lead",
+        targetId: "batch",
+        description: `${user.name} synced ${inserted} new and ${updated} updated lead(s) from the Chrome extension`,
+      })
     }
 
     return NextResponse.json({ success: true, inserted, updated, errors })
