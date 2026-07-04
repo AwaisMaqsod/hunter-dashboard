@@ -28,7 +28,7 @@ export async function PATCH(
 
     const { id } = params
     const body = await req.json()
-    const { status, notes, followUpDate, pitchSent } = body
+    const { status, notes, followUpDate, pitchSent, logFollowUp } = body
 
     const lead = await Lead.findById(id)
     if (!lead || lead.isDeleted) {
@@ -68,6 +68,18 @@ export async function PATCH(
       lead.pitchSent = pitchSent
     }
 
+    if (logFollowUp !== undefined && logFollowUp !== null) {
+      const followUpNote = typeof logFollowUp === "string" && logFollowUp.trim()
+        ? logFollowUp.trim()
+        : "Follow-up logged"
+      activityEntries.push({
+        action: "follow_up_logged",
+        note: followUpNote,
+        ...actor,
+        timestamp: new Date(),
+      })
+    }
+
     if (notes !== undefined) lead.notes = notes
     if (followUpDate !== undefined) {
       lead.followUpDate = followUpDate ? new Date(followUpDate) : null
@@ -81,16 +93,21 @@ export async function PATCH(
     await lead.save()
 
     for (const entry of activityEntries) {
+      const description =
+        entry.action === "status_changed"
+          ? `${session.user.name} ${entry.note.toLowerCase()} for "${lead.businessName}"`
+          : entry.action === "pitch_sent"
+            ? `${session.user.name} sent a pitch email for "${lead.businessName}"`
+            : `${session.user.name} logged a follow-up for "${lead.businessName}": ${entry.note}`
+
       await logActivity({
         userId: session.user.userId,
         userName: session.user.name ?? "Unknown",
         userRole: session.user.role,
-        action: entry.action as "status_changed" | "pitch_sent",
+        action: entry.action as "status_changed" | "pitch_sent" | "follow_up_logged",
         targetType: "Lead",
         targetId: lead._id.toString(),
-        description: `${session.user.name} ${
-          entry.action === "status_changed" ? entry.note.toLowerCase() : "sent a pitch email"
-        } for "${lead.businessName}"`,
+        description,
       })
     }
 

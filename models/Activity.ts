@@ -6,6 +6,7 @@ export type ActivityAction =
   | "status_changed"
   | "notes_updated"
   | "pitch_sent"
+  | "follow_up_logged"
   | "lead_deleted"
   | "user_created"
   | "user_role_changed"

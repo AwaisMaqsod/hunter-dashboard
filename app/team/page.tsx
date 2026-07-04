@@ -52,7 +52,7 @@ export default async function TeamPage() {
         role={session.user.role}
       />
 
-      <main className="flex-1 lg:ml-64 p-6">
+      <main className="flex-1 min-w-0 lg:ml-64 p-6">
         <TopBar title="Team" />
 
         <div className="flex justify-end mb-4">

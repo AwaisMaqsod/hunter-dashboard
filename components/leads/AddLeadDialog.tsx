@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 
-const PLATFORMS = ["Instagram", "Facebook", "LinkedIn", "Referral", "Other"]
+const PLATFORMS = ["Instagram", "Facebook", "WhatsApp", "LinkedIn", "Referral", "Other"]
 
 const emptyForm = {
   businessName: "",
@@ -82,7 +82,7 @@ export default function AddLeadDialog() {
         <Plus className="h-4 w-4" />
         Add Lead
       </Button>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add a lead</DialogTitle>
         </DialogHeader>
@@ -135,6 +135,7 @@ export default function AddLeadDialog() {
                 id="phone"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
+                placeholder="e.g. +44 7700 900000"
                 className="mt-1.5"
               />
             </div>
@@ -145,6 +146,7 @@ export default function AddLeadDialog() {
                 type="email"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
+                placeholder="e.g. hello@business.com"
                 className="mt-1.5"
               />
             </div>
@@ -167,6 +169,7 @@ export default function AddLeadDialog() {
                 id="website"
                 value={form.website}
                 onChange={(e) => update("website", e.target.value)}
+                placeholder="https://business.com"
                 className="mt-1.5"
               />
             </div>
@@ -178,6 +181,7 @@ export default function AddLeadDialog() {
               id="address"
               value={form.address}
               onChange={(e) => update("address", e.target.value)}
+              placeholder="e.g. 12 High Street, Huddersfield"
               className="mt-1.5"
             />
           </div>

@@ -24,6 +24,7 @@ const mongoUri = MONGODB_URI as string
 const SEED_USERS = [
   { name: "Kashif", email: "kashif@gmail.com", password: "12345678", role: "team" as const },
   { name: "Zain", email: "zain@gmail.com", password: "12345678", role: "team" as const },
+  { name: "Awais", email: "awais@gmail.com", password: "12345678", role: "team" as const },
 ]
 
 async function main() {

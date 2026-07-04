@@ -99,6 +99,11 @@ export default function LeadsTable({
     if (selectedLead?._id === updated._id) setSelectedLead(updated)
   }
 
+  const handleLeadDeleted = (id: string) => {
+    setLocalLeads((prev) => prev.filter((l) => l._id !== id))
+    setSelectedIds((prev) => prev.filter((x) => x !== id))
+  }
+
   const start = (page - 1) * 25 + 1
   const end = Math.min(page * 25, total)
 
@@ -342,6 +347,7 @@ export default function LeadsTable({
         lead={selectedLead}
         onClose={() => setSelectedLead(null)}
         onUpdate={handleLeadUpdate}
+        onDeleted={handleLeadDeleted}
       />
     </>
   )

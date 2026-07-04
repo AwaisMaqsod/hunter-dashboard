@@ -204,7 +204,7 @@ export default function SettingsPage() {
         role={session.user.role}
       />
 
-      <main className="flex-1 lg:ml-64 p-6 max-w-3xl">
+      <main className="flex-1 min-w-0 lg:ml-64 p-6 max-w-3xl">
         <TopBar title="Settings" />
 
         {/* ── Business Info ─────────────────────────── */}
